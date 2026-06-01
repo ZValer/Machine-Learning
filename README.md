@@ -194,6 +194,11 @@ Estas métricas están alineadas con el enfoque de evaluación usado en estudios
 
 ## Resultados
 
+<img width="622" height="547" alt="image" src="https://github.com/user-attachments/assets/6bc18ab3-c1c3-4601-87a3-4db977aee232" />
+
+Valores reales contra predichos del test.
+
+
 <img width="171" height="83" alt="image" src="https://github.com/user-attachments/assets/e04a97cc-35f3-4fbd-8adc-5b3095080c5f" />
 
 
