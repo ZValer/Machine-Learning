@@ -53,8 +53,8 @@ El dataset contiene:
 
 ## Proceso
 
-#### Revision de atributos
-#### Limpieza y selección de atributos
+### Revision de atributos
+### Limpieza y selección de atributos
 
 Antes de entrenar el modelo se realizó una revisión de las columnas del dataset con el objetivo de conservar únicamente las variables que aportaran información útil para predecir la variable objetivo `final_score`.
 
@@ -64,7 +64,7 @@ También se eliminaron las columnas `passed` y `performance_category`, ya que am
 
 Además, se eliminó la columna `uses_ai` debido a inconsistencias con otras variables relacionadas con el uso de inteligencia artificial. Por ejemplo, en algunos registros `uses_ai` indicaba que el estudiante no usaba IA, pero las columnas `ai_tools_used` y `ai_usage_purpose` sí contenían información sobre herramientas o propósitos de uso. Como la descripción del dataset tampoco aclaraba con precisión el significado de `uses_ai`, se decidió descartarla para evitar introducir ruido o contradicciones en el modelo.
 
-#### Revisión de atributos
+### Revisión de atributos
 
 La selección de atributos se apoyó en un análisis exploratorio de las variables categóricas y numéricas.
 <img width="2490" height="2490" alt="image" src="https://github.com/user-attachments/assets/cece260f-29a3-444c-ad0f-f28578dd79ff" />
@@ -209,4 +209,9 @@ El **MAE de 4.186 en test** indica que, en promedio, el modelo se equivoca por a
 El modelo obtuvo resultados muy similares en entrenamiento, validación y prueba.
 
 Como las métricas de train, validation y test son cercanas, no se observa sobreajuste importante. No hay underfitting ni overfitting. Esto sugiere que CatBoost generaliza adecuadamente para este conjunto de datos.
+
+------
+## Referencias
+
+Gul, M. N., Abbasi, W., Babar, M. Z., Aljohani, A., & Arif, M. (2025). *Data driven decisions in education using a comprehensive machine learning framework for student performance prediction*. Discover Computing, 28, Article 153. https://doi.org/10.1007/s10791-025-09585-3
 
