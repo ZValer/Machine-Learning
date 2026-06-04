@@ -82,9 +82,9 @@ Las variables con mayor correlación fueron:
 - `assignment_scores_avg`
 - `concept_understanding_score`
 
-Aunque estas variables presentan una relación importante con `final_score`, ninguna superó una correlación de `0.7`. Por esta razón, se consideró que no eran variables directamente dependientes de la variable objetivo y se conservaron para el entrenamiento. 
+Aunque estas variables presentan una relación importante con `final_score`, ninguna superó una correlación de `0.7`. Por esta razón, se consideró que no eran variables directamente dependientes de la variable objetivo y se conservaron para el entrenamiento. Además, si todas las correlaciones fueran bajas entonces el modelo probablemente no aprendería mucho.
 
-También se consideró que para el modelo seleccionado, **CatBoost**, se indica que aunque una variable parezca no tener relación individualmente, puede aportar información suplementaria valiosa cuando se combina con otras dentro de modelos complejos.
+También se consideró que aunque una variable parezca no tener gran relación individualmente, puede aportar información suplementaria valiosa cuando se combina con otras dentro de modelos complejos. El artículo de Ahmed et al. (2025) reportó mejores resultados al mantener todas las variables.
 
 Después del proceso de limpieza y selección de atributos, el dataset quedó conformado por:
 
@@ -133,10 +133,24 @@ Primero se separó el **20% del dataset para prueba**. Después, el conjunto res
 
 El preprocesamiento aplicado incluyó:
 
-- relleno de datos faltantes en las variables relacionadas con el uso de IA.
-- eliminación de columnas no válidas para predicción
-- separación de la variable objetivo `final_score`
-- definición de variables categóricas para el modelo CatBoost
+- Relleno de datos faltantes en las variables relacionadas con el uso de IA.
+- Eliminación de columnas no válidas para predicción
+- Separación de la variable objetivo `final_score`
+  
+**Modelo de red neuronal**
+- *One-Hot Encoding*: El modelo base de red neuronal solo acepta números, por lo que debemos pasar columnas a binario. Usamos pd.get_dummies, que aplica one-hot encoding a las variables categóricas con más de dos categorías.
+- *Escalamiento*: Las variables tienen escalas muy distintas
+  
+| Variable            | Rango  |
+| ------------------- | ------ |
+| sleep_hours         | 0-10   |
+| ai_prompts_per_week | 0-1000 |
+
+Para el modelo base de red neuronal, sin scaling, las variables grandes dominarían el entrenamiento.
+
+
+**Modelo CatBoost**
+- Definición de variables categóricas para el modelo CatBoost
 
 Las variables categóricas usadas por el modelo fueron:
 
@@ -149,8 +163,17 @@ No fue necesario aplicar manualmente *Label Encoding* ni *One-Hot Encoding*, ya 
 
 No se aplicó escalamiento porque CatBoost no lo necesita. Al ser un modelo basado en árboles, puede trabajar correctamente con variables numéricas en diferentes escalas.
 
+## Modelo base - Red Neuronal
+El modelo base implementado fue una **Red Neuronal densa** construida con Keras para resolver un problema de regresión, ya que la variable objetivo `final_score` es numérica continua.
 
-## Modelo seleccionado
+Este modelo recibe como entrada las variables del dataset después del preprocesamiento, incluyendo las variables categóricas transformadas mediante *One-Hot Encoding* y las variables numéricas escaladas con `StandardScaler`.
+
+La arquitectura utilizada está compuesta por una capa de entrada, dos capas densas ocultas con función de activación `relu` y una capa de salida con una sola neurona y activación lineal. Esta salida lineal permite predecir directamente el valor de la calificación final del estudiante.
+
+El modelo se utilizó como punto de comparación inicial para evaluar posteriormente el desempeño de CatBoost y del CatBoost optimizado mediante ajuste de hiperparámetros.
+
+
+## Modelo 2 - CatBoost Regressor
 
 El modelo seleccionado fue **CatBoost Regressor**.
 
@@ -161,11 +184,12 @@ Este modelo fue elegido porque:
 - puede capturar relaciones no lineales entre variables académicas, hábitos de estudio y uso de IA
 - permite controlar el sobreajuste mediante hiperparámetros y conjunto de validación
 
-El siguiente artículo destaca este modelo como el mejor para datos tabulares:
+El artículo **Data driven decisions in education using a comprehensive machine learning framework for student performance predictino** destaca a CatBoost como el modelo más sobresaliente para datos tabulares en su investigación. El cual obtuvo las mayor precisión, menor tasa de error y superó a otros algoritmos potentes como Gradient Boosting y Random Forest.
+
 
 > Gul, N., Chen, H. & Luo, C. (2025). *Data driven decisions in education using a comprehensive machine learning framework for student performance prediction*. Discover Computing, 28, 153. https://doi.org/10.1007/s10791-025-09585-3
 
-## Implementación del modelo
+**Implementación del modelo CatBoost Regressor**
 
 Parámetros principales utilizados:
 
@@ -178,9 +202,26 @@ Parámetros principales utilizados:
 
 El entrenamiento se realizó usando el conjunto de entrenamiento y se monitoreó el desempeño con el conjunto de validación.
 
+
+## Modelo 3 mejorado - CatBoost Regressor con optimización de hiperparámetros
+
+CatBoost permite optimizar sus hiperparámetros mediante métodos como **grid_search**. El cual se usa para probar distintas combinaciones de parámetros y seleccionar la que ofrezca el mejor desempeño predictivo.
+
+Este enfoque se respalda en el estudio **Fine Tuned CatBoost and Nature-Inspired Algorithms with Explainable AI**, donde Grid Search fue utilizado como parte del ajuste fino del modelo CatBoost, contribuyendo a mejorar su rendimiento y alcanzar altos niveles de precisión.
+
+
+> Haque, M. E., Islam, S. M. J., Maliha, J., Sumon, M. S. H., Sharmin, R., & Rokoni, S. (2025). *Improving chronic kidney disease detection efficiency: Fine tuned CatBoost and nature-inspired algorithms with explainable AI.* In 2025 IEEE 14th International Conference on Communication Systems and Network Technologies (CSNT). IEEE. https://doi.org/10.1109/CSNT64827.2025.10968421
+
+**Hiperparámetros**
+
+- `iterations`: número máximo de árboles.
+- `learning_rate`: velocidad de aprendizaje.
+- `depth`: complejidad de los árboles.
+- `l2_leaf_reg`: parámetro de regularización. Evita que el modelo se ajuste demasiado a los datos de entrenamiento.
+
 ## Métricas de evaluación
 
-Como la variable objetivo `final_score` es numérica continua, el problema se abordó como una tarea de **regresión**. Por ello, se utilizaron métricas adecuadas para evaluar error y capacidad explicativa del modelo.
+Como la variable objetivo `final_score` es numérica continua, el problema se abordó como una tarea de **regresión**. Por ello, se utilizaron métricas adecuadas para evaluar error y capacidad explicativa del modelo siguiendo el enfoque reportado por Gul et al. (2025).
 
 Las métricas seleccionadas fueron:
 
@@ -192,26 +233,44 @@ Las métricas seleccionadas fueron:
 
 Estas métricas están alineadas con el enfoque de evaluación usado en estudios de predicción de desempeño académico, como el artículo de Gul et al. (2025).
 
-## Resultados
-
-<img width="622" height="547" alt="image" src="https://github.com/user-attachments/assets/6bc18ab3-c1c3-4601-87a3-4db977aee232" />
-
-Valores reales contra predichos del test.
+## Resultados 
 
 
-<img width="171" height="83" alt="image" src="https://github.com/user-attachments/assets/e04a97cc-35f3-4fbd-8adc-5b3095080c5f" />
+**Modelo red neuronal**
+
+<img width="604" height="352" alt="image" src="https://github.com/user-attachments/assets/4eb5c6ea-dd63-4ac1-8f86-01097fec9b0d" />
 
 
-El **MAE de 4.186 en test** indica que, en promedio, el modelo se equivoca por aproximadamente 4.2 puntos (más o menos) en la calificación final. El **RMSE de 5.242** muestra que los errores grandes están relativamente controlados. El **R² de 0.852** indica que el modelo explica cerca del 85.2% de la variabilidad del desempeño final en datos no vistos.
+Las gráficas muestran que:
 
-<img width="1790" height="490" alt="image" src="https://github.com/user-attachments/assets/6342dd08-b582-4e83-b4d9-4d9e15107dbb" />
+- El modelo aprende muy rápido: la pérdida inicial es alta, pero cae drásticamente durante las primeras épocas.
+- Después de esa caída inicial, las curvas de `train loss` y `validation loss` se mantienen relativamente cercanas, por lo que no se observa overfitting.
+- Entrenar durante muchas épocas no parece aportar una mejora grande después de que la pérdida se estabiliza.
+- En la gráfica de valores reales vs predichos, los puntos siguen una tendencia cercana a la diagonal, lo que indica que el modelo predice razonablemente bien el `final_score`.
 
-El modelo obtuvo resultados muy similares en entrenamiento, validación y prueba.
+**Comparación de los modelos**
 
-Como las métricas de train, validation y test son cercanas, no se observa sobreajuste importante. No hay underfitting ni overfitting. Esto sugiere que CatBoost generaliza adecuadamente para este conjunto de datos.
+<img width="1790" height="590" alt="image" src="https://github.com/user-attachments/assets/d5b9b2c3-805c-45ec-b840-48d4c3b65dac" />
+<img width="1989" height="690" alt="image" src="https://github.com/user-attachments/assets/0fd9603a-2e97-41c1-98de-73cf98a0f299" />
+
+Los 3 modelos obtuvieron resultados muy similares en entrenamiento, validación y prueba, indicando que ninguno tuvo overfitting. Como las métricas de train, validation y test son cercanas, no se observa sobreajuste importante. No hay underfitting ni overfitting. Esto sugiere que los modelos generalizan adecuadamente para este conjunto de datos.
+
+Aun teniendo predicciones con poco margen de error, el modelo de Catboost no superó la Red Neuronal. Esto podría sugerir que el CatBoost está subentrenado o con hiperparámetros muy conservadores. Por lo que la mejora posterior se enfocó en ajustar los hiperparámetros.
+
+El modelo de CatBoost mejorado muestra valores más bajos de MAE y RMSE que todos, lo que quiere decir que las predicciones están más cerca de los valores reales. Mientras que el R² subió, indicando que los valores son mejor representados por este último modelo.
+
+En el conjunto de prueba, el modelo CatBoost mejorado obtuvo **MAE de 3.91**, indicando que, en promedio, el modelo 2 se equivoca por aproximadamente 0.092 puntos menos que el modelo inicial de red neuronal y 0.276 puntos menos que el modelo Catboost inicial. Un **RMSE de 4.92**, mostrando que los errores grandes están en promedio 0.152 puntos más controlados que el modelo red neuronal y 0.322 puntos más controlados que el modelo Catboost inicial. El **R² de 0.87** indica que el modelo explica cerca de 1% mejor que el modelo de red neuronal y 1.8% mejor que el modelo Catboost inicial, la variabilidad del desempeño final en datos no vistos.
+
+Las mejoras fueron resultado del ajuste de hiperparámetros mediante **Grid Search**. Sin embargo, las mejoras obtenidas fueron moderadas y no drásticas, lo que sugiere que el modelo inicial ya presentaba un buen desempeño y que el proceso de optimización permitió refinarlo, más que transformar significativamente su capacidad de predicción.
+
 
 ------
 ## Referencias
 
 Gul, M. N., Abbasi, W., Babar, M. Z., Aljohani, A., & Arif, M. (2025). *Data driven decisions in education using a comprehensive machine learning framework for student performance prediction*. Discover Computing, 28, Article 153. https://doi.org/10.1007/s10791-025-09585-3
+
+
+ Haque, M. E., Islam, S. M. J., Maliha, J., Sumon, M. S. H., Sharmin, R., & Rokoni, S. (2025). *Improving chronic kidney disease detection efficiency: Fine tuned CatBoost and nature-inspired algorithms with explainable AI.* In 2025 IEEE 14th International Conference on Communication Systems and Network Technologies (CSNT). IEEE. https://doi.org/10.1109/CSNT64827.2025.10968421
+
+Ahmed, W., Wani, M. A., Plawiak, P., Meshoul, S., Mahmoud, A., & Hammad, M. (2025). *Machine learning-based academic performance prediction with explainability for enhanced decision-making in educational institutions*. Scientific Reports, 15, 26879. https://doi.org/10.1038/s41598-025-12353-4
 
