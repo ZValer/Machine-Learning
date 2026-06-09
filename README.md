@@ -51,6 +51,10 @@ El dataset contiene:
 | `passed` | Indica si aprobó o no |
 | `performance_category` | Categoría de desempeño |
 
+
+> El dataset fue obtenido de ANKUSH. (2025). *Student Performance & Academic Trends Dataset* [Data set]. Kaggle. https://www.kaggle.com/datasets/ankushnarwade/ai-impact-on-student-performance
+
+
 ## Proceso
 
 ### Revision de atributos
@@ -219,6 +223,9 @@ Este enfoque se respalda en el estudio **Fine Tuned CatBoost and Nature-Inspired
 - `depth`: complejidad de los árboles.
 - `l2_leaf_reg`: parámetro de regularización. Evita que el modelo se ajuste demasiado a los datos de entrenamiento.
 
+*Mejores hiperparámetros encontrados:*
+{iterations': 1500, 'learning_rate': 0.01, 'depth': 4, 'l2_leaf_reg': 3}
+
 ## Métricas de evaluación
 
 Como la variable objetivo `final_score` es numérica continua, el problema se abordó como una tarea de **regresión**. Por ello, se utilizaron métricas adecuadas para evaluar error y capacidad explicativa del modelo siguiendo el enfoque reportado por Gul et al. (2025).
@@ -263,14 +270,20 @@ En el conjunto de prueba, el modelo CatBoost mejorado obtuvo **MAE de 3.91**, in
 
 Las mejoras fueron resultado del ajuste de hiperparámetros mediante **Grid Search**. Sin embargo, las mejoras obtenidas fueron moderadas y no drásticas, lo que sugiere que el modelo inicial ya presentaba un buen desempeño y que el proceso de optimización permitió refinarlo, más que transformar significativamente su capacidad de predicción.
 
+### *Correcciones finales realizadas
+- Se añadió el modelo base original de red neuronal.
+- Se actualizó la documentación.
+- Se añadieron los resultados y comparación entre modelo base, CatBoost inicial y CatBoost optimizado.
+
 
 ------
 ## Referencias
 
+Ahmed, W., Wani, M. A., Plawiak, P., Meshoul, S., Mahmoud, A., & Hammad, M. (2025). *Machine learning-based academic performance prediction with explainability for enhanced decision-making in educational institutions*. Scientific Reports, 15, 26879. https://doi.org/10.1038/s41598-025-12353-4
+
+ANKUSH. (2025). *Student Performance & Academic Trends Dataset* [Data set]. Kaggle. https://www.kaggle.com/datasets/ankushnarwade/ai-impact-on-student-performance
+
 Gul, M. N., Abbasi, W., Babar, M. Z., Aljohani, A., & Arif, M. (2025). *Data driven decisions in education using a comprehensive machine learning framework for student performance prediction*. Discover Computing, 28, Article 153. https://doi.org/10.1007/s10791-025-09585-3
 
-
- Haque, M. E., Islam, S. M. J., Maliha, J., Sumon, M. S. H., Sharmin, R., & Rokoni, S. (2025). *Improving chronic kidney disease detection efficiency: Fine tuned CatBoost and nature-inspired algorithms with explainable AI.* In 2025 IEEE 14th International Conference on Communication Systems and Network Technologies (CSNT). IEEE. https://doi.org/10.1109/CSNT64827.2025.10968421
-
-Ahmed, W., Wani, M. A., Plawiak, P., Meshoul, S., Mahmoud, A., & Hammad, M. (2025). *Machine learning-based academic performance prediction with explainability for enhanced decision-making in educational institutions*. Scientific Reports, 15, 26879. https://doi.org/10.1038/s41598-025-12353-4
+Haque, M. E., Islam, S. M. J., Maliha, J., Sumon, M. S. H., Sharmin, R., & Rokoni, S. (2025). *Improving chronic kidney disease detection efficiency: Fine tuned CatBoost and nature-inspired algorithms with explainable AI.* In 2025 IEEE 14th International Conference on Communication Systems and Network Technologies (CSNT). IEEE. https://doi.org/10.1109/CSNT64827.2025.10968421
 
